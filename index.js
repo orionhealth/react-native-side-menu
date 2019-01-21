@@ -30,7 +30,8 @@ type Props = {
   onStartShouldSetResponderCapture: Function,
   isOpen: bool,
   bounceBackOnOverdraw: bool,
-  autoClosing: bool
+  autoClosing: bool,
+  visible: bool,
 };
 
 type Event = {
@@ -203,18 +204,19 @@ export default class SideMenu extends React.Component {
       );
     }
 
+    const { visible } = this.props;
     const { width, height, left } = this.state; 
     const ref = sideMenu => (this.sideMenu = sideMenu);
-    const style = [
+    // If the drawer is not visible, then we dont want to render the animation styles.
+    const style = visible ? [
       styles.frontView,
-      { width, height, },
       this.props.animationStyle(left),
-    ];
-
+    ] : [styles.containerWhenNotVisible];
     return (
       <Animated.View style={style} ref={ref} {...this.responder.panHandlers}>
         {this.props.children}
-        {overlay}
+        {/* overlay only when visible */}
+        {visible && overlay}
       </Animated.View>
     );
   }
@@ -308,6 +310,7 @@ export default class SideMenu extends React.Component {
   }
 
   render(): React.Element<void, void> {
+    const { visible } = this.props;
     const boundryStyle = this.getBoundryStyleByDirection();
 
     const menu = (
@@ -318,10 +321,10 @@ export default class SideMenu extends React.Component {
 
     return (
       <View
-        style={styles.container}
+        style={[visible && styles.containerWhenVisible, !visible && styles.containerWhenNotVisible]}
         onLayout={this.onLayoutChange}
       >
-        {menu}
+        {visible && menu}
         {this.getContentView()}
       </View>
     );
@@ -347,6 +350,7 @@ SideMenu.propTypes = {
   isOpen: PropTypes.bool,
   bounceBackOnOverdraw: PropTypes.bool,
   autoClosing: PropTypes.bool,
+  visible: PropTypes.bool,
 };
 
 SideMenu.defaultProps = {
@@ -376,4 +380,5 @@ SideMenu.defaultProps = {
   isOpen: false,
   bounceBackOnOverdraw: true,
   autoClosing: true,
+  visible: true,
 };

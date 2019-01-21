@@ -11,9 +11,15 @@ const absoluteStretch = {
 };
 
 export default StyleSheet.create({
-  container: {
+  containerWhenVisible: {
     ...absoluteStretch,
     justifyContent: 'center',
+  },
+  containerWhenNotVisible: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
   },
   menu: {
     ...absoluteStretch,
@@ -21,6 +27,8 @@ export default StyleSheet.create({
   frontView: {
     flex: 1,
     position: 'absolute',
+    width: '100%',
+    height: '100%',
     left: 0,
     top: 0,
     backgroundColor: 'transparent',

@@ -73,6 +73,7 @@ menu is hidden |
 | animationStyle | none | (Function -> Object) | Function that accept 1 argument (value) and return an object: <br /> - `value` you should use at the place you need current value of animated parameter (left offset of content view) |
 | bounceBackOnOverdraw | true | boolean | when true, content view will bounce back to openMenuOffset when dragged further |
 | autoClosing | true | boolean | When true, menu close automatically as soon as an event occurs |
+| visible | true | boolean | When true, drawer gets visible, when false drawer just renders children and draw is unusable |
 
 ### FAQ
 
