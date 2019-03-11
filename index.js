@@ -76,7 +76,6 @@ function menuPositionMultiplier(menuPosition) {
 } 
 
 export default class SideMenu extends React.Component {
-  onLayoutChange: Function;
   onStartShouldSetResponderCapture: Function;
   onMoveShouldSetPanResponder: Function;
   onPanResponderMove: Function;
@@ -107,7 +106,6 @@ export default class SideMenu extends React.Component {
         : hiddenMenuOffset * initialMenuPositionMultiplier
     );
 
-    this.onLayoutChange = this.onLayoutChange.bind(this);
     this.onStartShouldSetResponderCapture = props.onStartShouldSetResponderCapture.bind(this);
     this.onMoveShouldSetPanResponder = this.handleMoveShouldSetPanResponder.bind(this);
     this.onPanResponderMove = this.handlePanResponderMove.bind(this);
@@ -140,39 +138,18 @@ export default class SideMenu extends React.Component {
   componentWillReceiveProps(props: Props): void {
     if (typeof props.isOpen !== 'undefined' && this.isOpen !== props.isOpen && (props.autoClosing || this.isOpen === false)) {
       this.openMenu(props.isOpen);
-    } else {
-      // This below code is taken from an Open PR into React Native Side Menu.
-      // See https://github.com/react-native-community/react-native-side-menu/pull/356/commits/89bb710a8a2458db4b8163c94d81d38fb9c95927
-      // (Some further modifications have been done be Orion Health)
-      const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = props;
-      // if openMenuOffset or hiddenMenuOffset has changed
-      if ((this.props.openMenuOffsetPercentage !== openMenuOffsetPercentage) || (this.props.hiddenMenuOffsetPercentage !== hiddenMenuOffsetPercentage)) {
-        const width = Dimensions.get('window').width;
-        const openMenuOffset = (width / 100) * openMenuOffsetPercentage;
-        const hiddenMenuOffset = (width / 100) * hiddenMenuOffsetPercentage;
-
-        this.setState({
-          ...this.state,
-          openMenuOffsetPercentage,
-          hiddenMenuOffsetPercentage,
-          openMenuOffset, 
-          hiddenMenuOffset,
-          width,
-        });
-        this.moveLeft(this.isOpen ? openMenuOffset : hiddenMenuOffset);
-      }
     }
   }
 
-  onLayoutChange(e: Event) {
-    // This below code is taken from an Open PR into React Native Side Menu.  
-    // https://github.com/react-native-community/react-native-side-menu/pull/343/commits/1bf58bc701a560b3d5221dff762e6730641b16fd
-    const sizes = e.nativeEvent.layout;
-    this.changeOffset(sizes);
+  componentDidUpdate(prevProps) {
+    const { layout } = this.props;
+    if ( prevProps.layout.viewportHeight !== layout.viewportHeight || prevProps.layout.viewportWidth !== layout.viewportWidth ) {
+      this.changeOffset({ width: layout.viewportWidth, height: layout.viewportHeight });
+    }  
   }
 
   changeOffset = ({ width, height }) => {
-    const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = this.state;
+    const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = this.props;
     
     const openMenuOffset = (width / 100) * openMenuOffsetPercentage;
     const hiddenMenuOffset = (width / 100) * hiddenMenuOffsetPercentage;
@@ -319,7 +296,6 @@ export default class SideMenu extends React.Component {
     return (
       <View
         style={styles.container}
-        onLayout={this.onLayoutChange}
       >
         {menu}
         {this.getContentView()}
@@ -347,6 +323,7 @@ SideMenu.propTypes = {
   isOpen: PropTypes.bool,
   bounceBackOnOverdraw: PropTypes.bool,
   autoClosing: PropTypes.bool,
+  layout: PropTypes.object,
 };
 
 SideMenu.defaultProps = {
