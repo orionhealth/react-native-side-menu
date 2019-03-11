@@ -30,8 +30,7 @@ type Props = {
   onStartShouldSetResponderCapture: Function,
   isOpen: bool,
   bounceBackOnOverdraw: bool,
-  autoClosing: bool,
-  visible: bool,
+  autoClosing: bool
 };
 
 type Event = {
@@ -77,7 +76,6 @@ function menuPositionMultiplier(menuPosition) {
 } 
 
 export default class SideMenu extends React.Component {
-  onLayoutChange: Function;
   onStartShouldSetResponderCapture: Function;
   onMoveShouldSetPanResponder: Function;
   onPanResponderMove: Function;
@@ -108,7 +106,6 @@ export default class SideMenu extends React.Component {
         : hiddenMenuOffset * initialMenuPositionMultiplier
     );
 
-    this.onLayoutChange = this.onLayoutChange.bind(this);
     this.onStartShouldSetResponderCapture = props.onStartShouldSetResponderCapture.bind(this);
     this.onMoveShouldSetPanResponder = this.handleMoveShouldSetPanResponder.bind(this);
     this.onPanResponderMove = this.handlePanResponderMove.bind(this);
@@ -141,39 +138,18 @@ export default class SideMenu extends React.Component {
   componentWillReceiveProps(props: Props): void {
     if (typeof props.isOpen !== 'undefined' && this.isOpen !== props.isOpen && (props.autoClosing || this.isOpen === false)) {
       this.openMenu(props.isOpen);
-    } else {
-      // This below code is taken from an Open PR into React Native Side Menu.
-      // See https://github.com/react-native-community/react-native-side-menu/pull/356/commits/89bb710a8a2458db4b8163c94d81d38fb9c95927
-      // (Some further modifications have been done be Orion Health)
-      const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = props;
-      // if openMenuOffset or hiddenMenuOffset has changed
-      if ((this.props.openMenuOffsetPercentage !== openMenuOffsetPercentage) || (this.props.hiddenMenuOffsetPercentage !== hiddenMenuOffsetPercentage)) {
-        const width = Dimensions.get('window').width;
-        const openMenuOffset = (width / 100) * openMenuOffsetPercentage;
-        const hiddenMenuOffset = (width / 100) * hiddenMenuOffsetPercentage;
-
-        this.setState({
-          ...this.state,
-          openMenuOffsetPercentage,
-          hiddenMenuOffsetPercentage,
-          openMenuOffset, 
-          hiddenMenuOffset,
-          width,
-        });
-        this.moveLeft(this.isOpen ? openMenuOffset : hiddenMenuOffset);
-      }
     }
   }
 
-  onLayoutChange(e: Event) {
-    // This below code is taken from an Open PR into React Native Side Menu.  
-    // https://github.com/react-native-community/react-native-side-menu/pull/343/commits/1bf58bc701a560b3d5221dff762e6730641b16fd
-    const sizes = e.nativeEvent.layout;
-    this.changeOffset(sizes);
+  componentDidUpdate(prevProps) {
+    const { layout } = this.props;
+    if ( prevProps.layout.viewportHeight !== layout.viewportHeight || prevProps.layout.viewportWidth !== layout.viewportWidth ) {
+      this.changeOffset({ width: layout.viewportWidth, height: layout.viewportHeight });
+    }  
   }
 
   changeOffset = ({ width, height }) => {
-    const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = this.state;
+    const { openMenuOffsetPercentage, hiddenMenuOffsetPercentage } = this.props;
     
     const openMenuOffset = (width / 100) * openMenuOffsetPercentage;
     const hiddenMenuOffset = (width / 100) * hiddenMenuOffsetPercentage;
@@ -204,19 +180,18 @@ export default class SideMenu extends React.Component {
       );
     }
 
-    const { visible } = this.props;
     const { width, height, left } = this.state; 
     const ref = sideMenu => (this.sideMenu = sideMenu);
-    // If the drawer is not visible, then we dont want to render the animation styles.
-    const style = visible ? [
+    const style = [
       styles.frontView,
+      { width, height, },
       this.props.animationStyle(left),
-    ] : [styles.containerWhenNotVisible];
+    ];
+
     return (
       <Animated.View style={style} ref={ref} {...this.responder.panHandlers}>
         {this.props.children}
-        {/* overlay only when visible */}
-        {visible && overlay}
+        {overlay}
       </Animated.View>
     );
   }
@@ -310,7 +285,6 @@ export default class SideMenu extends React.Component {
   }
 
   render(): React.Element<void, void> {
-    const { visible } = this.props;
     const boundryStyle = this.getBoundryStyleByDirection();
 
     const menu = (
@@ -321,10 +295,9 @@ export default class SideMenu extends React.Component {
 
     return (
       <View
-        style={[visible && styles.containerWhenVisible, !visible && styles.containerWhenNotVisible]}
-        onLayout={this.onLayoutChange}
+        style={styles.container}
       >
-        {visible && menu}
+        {menu}
         {this.getContentView()}
       </View>
     );
@@ -350,7 +323,7 @@ SideMenu.propTypes = {
   isOpen: PropTypes.bool,
   bounceBackOnOverdraw: PropTypes.bool,
   autoClosing: PropTypes.bool,
-  visible: PropTypes.bool,
+  layout: PropTypes.object,
 };
 
 SideMenu.defaultProps = {
@@ -380,5 +353,4 @@ SideMenu.defaultProps = {
   isOpen: false,
   bounceBackOnOverdraw: true,
   autoClosing: true,
-  visible: true,
 };
