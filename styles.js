@@ -1,9 +1,13 @@
 // @flow
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+
+// Prevent IOS 9 Safari and some older browsers from overflowing 
+// the body content after drawer opens/closes.
+const position = Platform.OS === 'web' ? 'fixed' : 'absolute'; 
 
 const absoluteStretch = {
-  position: 'absolute',
+  position,
   top: 0,
   left: 0,
   bottom: 0,
