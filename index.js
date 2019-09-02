@@ -8,6 +8,7 @@ import {
   Animated,
   TouchableWithoutFeedback,
   I18nManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './styles';
@@ -286,9 +287,11 @@ export default class SideMenu extends React.Component {
 
   render(): React.Element<void, void> {
     const boundryStyle = this.getBoundryStyleByDirection();
-
+    // On native platforms we were having a weird reaction to 
+    // absolutly positioning the menu, so we remove the styling.
+    const menuStyle = Platform.OS !== 'web' ? {} : styles.menu;
     const menu = (
-      <View style={[styles.menu, boundryStyle]}>
+      <View style={[menuStyle, boundryStyle]}>
         {this.props.menu}
       </View>
     );
